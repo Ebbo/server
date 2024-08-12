@@ -54,11 +54,11 @@ const requestFullscreen = (element: FullScreenHTMLVideoElement | null) => {
 };
 
 export const Room = ({
-    state,
-    share,
-    stopShare,
-    setName,
-}: {
+                         state,
+                         share,
+                         stopShare,
+                         setName,
+                     }: {
     state: ConnectedRoom;
     share: () => void;
     stopShare: () => void;
@@ -222,13 +222,13 @@ export const Room = ({
                     {state.hostStream ? (
                         <Tooltip title="Cancel Presentation" arrow>
                             <IconButton onClick={stopShare} size="large">
-                                <CancelPresentationIcon fontSize="large" />
+                                <CancelPresentationIcon fontSize="large"/>
                             </IconButton>
                         </Tooltip>
                     ) : (
                         <Tooltip title="Start Presentation" arrow>
                             <IconButton onClick={share} size="large">
-                                <PresentToAllIcon fontSize="large" />
+                                <PresentToAllIcon fontSize="large"/>
                             </IconButton>
                         </Tooltip>
                     )}
@@ -248,7 +248,7 @@ export const Room = ({
                         arrow
                     >
                         <Badge badgeContent={state.users.length} color="primary">
-                            <PeopleIcon fontSize="large" />
+                            <PeopleIcon fontSize="large"/>
                         </Badge>
                     </Tooltip>
                     <Tooltip title="Sound" arrow>
@@ -261,9 +261,9 @@ export const Room = ({
                             }}
                             disabled={!selectedStream || !!state.hostStream}>
                             {videoElement?.muted ? (
-                                <VolumeMuteIcon fontSize="large" />
+                                <VolumeMuteIcon fontSize="large"/>
                             ) : (
-                                <VolumeUpIcon fontSize="large" />
+                                <VolumeUpIcon fontSize="large"/>
                             )}
                         </IconButton>
                     </Tooltip>
@@ -273,13 +273,13 @@ export const Room = ({
                             disabled={!selectedStream}
                             size="large"
                         >
-                            <FullScreenIcon fontSize="large" />
+                            <FullScreenIcon fontSize="large"/>
                         </IconButton>
                     </Tooltip>
 
                     <Tooltip title="Settings" arrow>
                         <IconButton onClick={() => setOpen(true)} size="large">
-                            <SettingsIcon fontSize="large" />
+                            <SettingsIcon fontSize="large"/>
                         </IconButton>
                     </Tooltip>
                 </Paper>
@@ -319,7 +319,7 @@ export const Room = ({
                         className={classes.smallVideoContainer}
                         onClick={() => setSelectedStream(HostStream)}
                     >
-                        <Video src={state.hostStream} className={classes.smallVideo} />
+                        <Video src={state.hostStream} className={classes.smallVideo}/>
                         <Typography
                             variant="subtitle1"
                             component="div"
