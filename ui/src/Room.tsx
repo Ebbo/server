@@ -249,6 +249,22 @@ export const Room = ({
                             <PeopleIcon fontSize="large" />
                         </Badge>
                     </Tooltip>
+                    <Tooltip title="Sound" arrow>
+                        <IconButton
+                            onClick={() => {
+                                const video = videoElement as HTMLMediaElement;
+                                if (video) {
+                                    video.muted = !video.muted;
+                                }
+                            }}
+                            disabled={!selectedStream || !!state.hostStream}>
+                            {videoElement?.muted ? (
+                                <VolumeMuteIcon fontSize="large" />
+                            ) : (
+                                <VolumeUpIcon fontSize="large" />
+                            )}
+                        </IconButton>
+                    </Tooltip>
                     <Tooltip title="Fullscreen" arrow>
                         <IconButton
                             onClick={() => handleFullscreen()}
