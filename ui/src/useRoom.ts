@@ -25,7 +25,8 @@ export type ConnectedRoom = {
 interface ClientStream {
     id: string;
     peer_id: string;
-    stream: MediaStream;
+    videoStream?: MediaStream;
+    audioStream?: MediaStream;
 }
 
 export interface UseRoom {
@@ -40,12 +41,12 @@ const relayConfig: Partial<RTCConfiguration> =
     window.location.search.indexOf('forceTurn=true') !== -1 ? {iceTransportPolicy: 'relay'} : {};
 
 const hostSession = async ({
-    sid,
-    ice,
-    send,
-    done,
-    stream,
-}: {
+                               sid,
+                               ice,
+                               send,
+                               done,
+                               stream,
+                           }: {
     sid: string;
     ice: ICEServer[];
     send: (e: OutgoingMessage) => void;
@@ -112,16 +113,16 @@ const hostSession = async ({
 };
 
 const clientSession = async ({
-    sid,
-    ice,
-    send,
-    done,
-    onTrack,
-}: {
+                                 sid,
+                                 ice,
+                                 send,
+                                 done,
+                                 onTrack,
+                             }: {
     sid: string;
     ice: ICEServer[];
     send: (e: OutgoingMessage) => void;
-    onTrack: (s: MediaStream) => void;
+    onTrack: (s: MediaStream, k: string) => void;
     done: () => void;
 }): Promise<RTCPeerConnection> => {
     console.log('ice', ice);
@@ -144,9 +145,10 @@ const clientSession = async ({
         }
     };
     peer.ontrack = (event) => {
+        const kind = event.track.kind;
         const stream = new MediaStream();
         stream.addTrack(event.track);
-        onTrack(stream);
+        onTrack(stream, kind);
     };
 
     return peer;
@@ -221,30 +223,48 @@ export const useRoom = (config: UIConfig): UseRoom => {
                                     setState((current) =>
                                         current
                                             ? {
-                                                  ...current,
-                                                  clientStreams: current.clientStreams.filter(
-                                                      ({id}) => id !== sid
-                                                  ),
-                                              }
+                                                ...current,
+                                                clientStreams: current.clientStreams.filter(
+                                                    ({id}) => id !== sid
+                                                ),
+                                            }
                                             : current
                                     );
                                 },
-                                onTrack: (stream) =>
-                                    setState((current) =>
-                                        current
-                                            ? {
-                                                  ...current,
-                                                  clientStreams: [
-                                                      ...current.clientStreams,
-                                                      {
-                                                          id: sid,
-                                                          stream,
-                                                          peer_id: peer,
-                                                      },
-                                                  ],
-                                              }
-                                            : current
-                                    ),
+                                onTrack: (stream, kind) =>
+                                    setState((current) => {
+                                        if (!current) {
+                                            return current;
+                                        }
+
+                                        const isVideo = kind === 'video';
+
+                                        const existingStream = current.clientStreams.find(
+                                            ({id}) => id === sid
+                                        );
+                                        if (existingStream) {
+                                            if (isVideo) {
+                                                existingStream.videoStream = stream;
+                                            } else {
+                                                existingStream.audioStream = stream;
+                                            }
+
+                                            return current;
+                                        }
+
+                                        return {
+                                            ...current,
+                                            clientStreams: [
+                                                ...current.clientStreams,
+                                                {
+                                                    id: sid,
+                                                    peer_id: peer,
+                                                    videoStream: isVideo ? stream : undefined,
+                                                    audioStream: isVideo ? undefined : stream,
+                                                },
+                                            ],
+                                        };
+                                    }),
                             }).then((peer) => (client.current[event.payload.id] = peer));
                             return;
                         case 'clientice':
@@ -280,11 +300,11 @@ export const useRoom = (config: UIConfig): UseRoom => {
                             setState((current) =>
                                 current
                                     ? {
-                                          ...current,
-                                          clientStreams: current.clientStreams.filter(
-                                              ({id}) => id !== event.payload
-                                          ),
-                                      }
+                                        ...current,
+                                        clientStreams: current.clientStreams.filter(
+                                            ({id}) => id !== event.payload
+                                        ),
+                                    }
                                     : current
                             );
                     }
@@ -325,14 +345,40 @@ export const useRoom = (config: UIConfig): UseRoom => {
             );
             return;
         }
-        stream.current = await navigator.mediaDevices.getDisplayMedia({
-            video: {frameRate: loadSettings().framerate},
-            audio: true,
-        });
-        stream.current?.getVideoTracks()[0].addEventListener('ended', () => stopShare());
-        setState((current) => (current ? {...current, hostStream: stream.current} : current));
+        try {
+            stream.current = await navigator.mediaDevices.getDisplayMedia({
+                video: {frameRate: loadSettings().framerate},
+                audio: {
+                    echoCancellation: false,
+                    noiseSuppression: false,
+                    autoGainControl: false,
+                    sampleRate: 44100,
+                },
+            });
 
-        conn.current?.send(JSON.stringify({type: 'share', payload: {}}));
+            if (stream.current.getAudioTracks().length === 0) {
+                enqueueSnackbar('No audio source was selected', {
+                    variant: 'warning',
+                });
+            }
+
+            stream.current?.getVideoTracks()[0].addEventListener('ended', () => stopShare());
+            setState((current) => (current ? {...current, hostStream: stream.current} : current));
+
+            conn.current?.send(JSON.stringify({type: 'share', payload: {}}));
+        } catch (error: unknown) {
+            if (error instanceof Error) {
+                enqueueSnackbar(`Error during sharing: ${error.message}`, {
+                    variant: 'error',
+                    persist: true,
+                });
+            } else {
+                enqueueSnackbar('An unknown error occurred during sharing.', {
+                    variant: 'error',
+                    persist: true,
+                });
+            }
+        }
     };
 
     const stopShare = async () => {
