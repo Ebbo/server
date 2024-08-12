@@ -54,11 +54,11 @@ const requestFullscreen = (element: FullScreenHTMLVideoElement | null) => {
 };
 
 export const Room = ({
-                         state,
-                         share,
-                         stopShare,
-                         setName,
-                     }: {
+    state,
+    share,
+    stopShare,
+    setName,
+}: {
     state: ConnectedRoom;
     share: () => void;
     stopShare: () => void;

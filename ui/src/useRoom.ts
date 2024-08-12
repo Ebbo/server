@@ -41,12 +41,12 @@ const relayConfig: Partial<RTCConfiguration> =
     window.location.search.indexOf('forceTurn=true') !== -1 ? {iceTransportPolicy: 'relay'} : {};
 
 const hostSession = async ({
-                               sid,
-                               ice,
-                               send,
-                               done,
-                               stream,
-                           }: {
+    sid,
+    ice,
+    send,
+    done,
+    stream,
+}: {
     sid: string;
     ice: ICEServer[];
     send: (e: OutgoingMessage) => void;
@@ -113,12 +113,12 @@ const hostSession = async ({
 };
 
 const clientSession = async ({
-                                 sid,
-                                 ice,
-                                 send,
-                                 done,
-                                 onTrack,
-                             }: {
+    sid,
+    ice,
+    send,
+    done,
+    onTrack,
+}: {
     sid: string;
     ice: ICEServer[];
     send: (e: OutgoingMessage) => void;
@@ -223,11 +223,11 @@ export const useRoom = (config: UIConfig): UseRoom => {
                                     setState((current) =>
                                         current
                                             ? {
-                                                ...current,
-                                                clientStreams: current.clientStreams.filter(
-                                                    ({id}) => id !== sid
-                                                ),
-                                            }
+                                                  ...current,
+                                                  clientStreams: current.clientStreams.filter(
+                                                      ({id}) => id !== sid
+                                                  ),
+                                              }
                                             : current
                                     );
                                 },
@@ -300,11 +300,11 @@ export const useRoom = (config: UIConfig): UseRoom => {
                             setState((current) =>
                                 current
                                     ? {
-                                        ...current,
-                                        clientStreams: current.clientStreams.filter(
-                                            ({id}) => id !== event.payload
-                                        ),
-                                    }
+                                          ...current,
+                                          clientStreams: current.clientStreams.filter(
+                                              ({id}) => id !== event.payload
+                                          ),
+                                      }
                                     : current
                             );
                     }
