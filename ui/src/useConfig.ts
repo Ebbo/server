@@ -17,7 +17,7 @@ export const useConfig = (): UseConfig => {
         user: 'guest',
         loggedIn: false,
         loading: true,
-        version: 'unknown',
+        version: '0.1 with audio 🎶🪇🎶',
         roomName: 'unknown',
         closeRoomWhenOwnerLeaves: true,
     });
